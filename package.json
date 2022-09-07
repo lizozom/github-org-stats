@@ -12,6 +12,7 @@
   "type": "module",
   "dependencies": {
     "@octokit/rest": "^19.0.4",
+    "dotenv": "^16.0.2",
     "json-2-csv": "^3.17.1",
     "node-fetch": "^3.2.10",
     "octokit": "^2.0.7",
