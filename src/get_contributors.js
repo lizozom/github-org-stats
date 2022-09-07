@@ -1,7 +1,7 @@
 import { checkElasticMember } from "./check_elastic_member.js";
 import { ORG } from "./constants.js";
 import { getContributions } from "./get_contributions.js";
-import { EMPTY, tap, map, concatMap, from, expand } from 'rxjs';
+import { EMPTY, tap, map, concatMap, from, expand, delay } from 'rxjs';
 
 function enrichData(octokit, repo, data) {
     return Promise.all(data.map(async (user) => {
@@ -20,13 +20,15 @@ function getContributionsPage(octokit, repo, page = 1) {
         octokit.request('GET /repos/{owner}/{repo}/contributors', {
             owner: ORG,
             repo,
-            per_page: 10,
+            per_page: 5,
             page,
         })
     ).pipe(
         map(results => results.data),
         tap((data) => console.log(`fetched page ${page} with ${data.length} items`)),
-        concatMap(data => enrichData(octokit, repo, data))
+        concatMap(data => enrichData(octokit, repo, data)),
+        delay(5000)
+
     )
 }
 

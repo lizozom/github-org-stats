@@ -1,9 +1,10 @@
 import fetch from "node-fetch";
-import { AUTH_TOKEN, ORG } from "./constants.js";
+import { ORG } from "./constants.js";
+import { sleep } from "./helpers.js";
 
 export async function getContributions(repo, username) {
     const headers = {
-      'Authorization': `bearer ${AUTH_TOKEN}`,
+      'Authorization': `bearer ${process.env.GH_AUTH_TOKEN}`,
     }
   
     const yearlyContributions = {};
@@ -12,6 +13,8 @@ export async function getContributions(repo, username) {
   
     while (year <=  curYear) {
       try {
+        yearlyContributions[`contrib_${year}`] = 0;
+        
         const body = {
           "query": `query { 
             user(login: "${username}") {
@@ -42,6 +45,7 @@ export async function getContributions(repo, username) {
       } catch (e) {
         console.log(e)
       }
+      await sleep(1000);
     }
   
     return yearlyContributions;
