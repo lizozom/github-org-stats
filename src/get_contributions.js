@@ -1,20 +1,16 @@
 import fetch from "node-fetch";
-import { ORG } from "./constants.js";
-import { sleep } from "./helpers.js";
+import { from, of, delay, map, concatMap, mergeMap } from "rxjs";
 
-export async function getContributions(repo, username) {
+export function getContributions$(username, startYear) {
     const headers = {
       'Authorization': `bearer ${process.env.GH_AUTH_TOKEN}`,
-    }
-  
-    const yearlyContributions = {};
-    let year = 2012;
+    } 
+    const repoNameWithOwner = `${process.env.ORG}/${process.env.PROJECT}`;
     const curYear = new Date().getFullYear();
-  
-    while (year <=  curYear) {
-      try {
-        yearlyContributions[`contrib_${year}`] = 0;
-        
+    let years = Array.from({ length: curYear - startYear + 1 }, (v, k) => k + startYear); ;
+
+    return from(years).pipe(
+      concatMap(year => {
         const body = {
           "query": `query { 
             user(login: "${username}") {
@@ -33,21 +29,23 @@ export async function getContributions(repo, username) {
           }
           `
         }
-        const response = await fetch('https://api.github.com/graphql', { method: 'POST', body: JSON.stringify(body), headers: headers })
-        const data = await response.json()
-        if (!data.data) {
-            console.log(data)
-        }
-        const commitContributionsByRepository = data.data.user.contributionsCollection.commitContributionsByRepository;
-        const repoContribution = commitContributionsByRepository.find(item => item.repository?.nameWithOwner === `${ORG}/${repo}`);
-        yearlyContributions[`contrib_${year}`] = repoContribution?.contributions?.totalCount || 0;
-        year++;
-      } catch (e) {
-        console.log(e)
-      }
-      await sleep(1000);
-    }
-  
-    return yearlyContributions;
+
+        return from(fetch('https://api.github.com/graphql', { 
+          method: 'POST', 
+          body: JSON.stringify(body), 
+          headers: headers 
+        })).pipe(
+          mergeMap(response => response.json()),
+          map(data => {
+            const commitContributionsByRepository = data.data?.user?.contributionsCollection?.commitContributionsByRepository || [];
+            const repoContribution = commitContributionsByRepository.find(item => item.repository?.nameWithOwner === repoNameWithOwner);
+            return {
+              year,
+              year_contributions: repoContribution?.contributions?.totalCount || 0,
+            }
+          }),)
+      }),
+      delay(1000)
+    )
   }
   

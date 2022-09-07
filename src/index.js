@@ -1,6 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { REPO } from './constants.js';
-import { getContributors } from './get_contributors.js';
+import { getContributors$ } from './get_contributors.js';
 import json2csv from 'json-2-csv';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv' 
@@ -17,7 +16,7 @@ async function main() {
   let prependHeader = true;
   const startTime = new Date().getTime();
 
-  getContributors(octokit, REPO).subscribe({
+  getContributors$(octokit, process.env.PROJECT).subscribe({
     next: contributorPage => {    
       json2csv.json2csv(contributorPage, (err, csv) => {
         if (err) {
@@ -26,14 +25,16 @@ async function main() {
       
         // print CSV string
         if (csv) {
-          fs.writeFileSync(OUTPUT_FILE_NAME, csv, { 
-            flag: "a+",
-            emptyFieldValue: '',
-            prependHeader: firstWrite,
+          fs.writeFileSync(OUTPUT_FILE_NAME, csv + "\n", { 
+            flag: "a",
           })      
 
           if (prependHeader) prependHeader = false;
         }
+      }, {
+        emptyFieldValue: '',
+        prependHeader,
+        keys: ['project', 'login', 'id', 'html_url', 'contributions', 'is_member', 'membership_state', 'membership_role', 'year', 'year_contributions']
       });
     },
     complete: () => {
