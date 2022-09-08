@@ -15,7 +15,7 @@ function enrichData$(octokit, data) {
             return combineLatest([
                 of(user),
                 of(membership),
-                getContributions$(user.login, 2012)
+                getContributions$(user.login, process.env.START_YEAR)
             ]);
         }),
     )
