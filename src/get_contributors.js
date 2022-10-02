@@ -1,4 +1,4 @@
-import { checkElasticMember$ } from "./check_elastic_member.js";
+import { checkElasticMember$ } from "./check_org_member.js";
 import { getContributions$ } from "./get_contributions.js";
 import { EMPTY, tap, map, concatMap, from, expand, of, delay, mergeMap, combineLatest, toArray } from 'rxjs';
 
