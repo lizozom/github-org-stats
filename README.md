@@ -1,4 +1,6 @@
-This code generates a csv file of total contributions broken down by contributor and year to a repository.
+# Github org stats
+
+This code generates a csv file of total contributions to a project, broken down by contributor and year to a repository.
 
 ### How to run
 
